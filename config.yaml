@@ -1,0 +1,50 @@
+name: eegnet-lr
+seed: 42
+
+preprocess:
+  raw_dir: data/DESTINATION
+  out_dir: data/processed/bp1-40_160hz
+  runs: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+  exclude_subjects: [88, 92, 100]
+  l_freq: 1.0
+  h_freq: 40.0
+  resample: null
+  tmin: -0.5
+  tmax: 4.0
+
+data:
+  processed_dir: data/processed/bp1-40_160hz
+  classes: [left, right]
+  train_runs: [3, 4, 7, 8, 11, 12]
+  test_runs: [4, 8, 12]
+  channels: all          # all | motor | [C3, Cz, C4, ...]
+  tmin: 0.0
+  tmax: 4.0
+  euclidean_alignment: false
+  n_folds: 5
+  fold: 0                # -1 = run every fold
+  val_frac: 0.1
+
+model:
+  name: eegnet           # eegnet | shallow | deep | csp_lda
+  eegnet: {F1: 8, D: 2, F2: 16, kern_len: 80, dropout: 0.5}
+  shallow: {n_filters: 40, kern_len: 25, pool_len: 75, pool_stride: 15, dropout: 0.5}
+  deep: {dropout: 0.5}
+  csp_lda: {n_components: 6, l_freq: 8.0, h_freq: 30.0}
+
+train:
+  epochs: 100
+  batch_size: 64
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  patience: 20
+  device: auto
+  data_on_gpu: false     # keep train/val/test tensors on the GPU (~1.4 GB)
+  amp: false             # bf16 autocast; ~2x faster for shallow/deep, slower for eegnet
+  out_dir: runs
+
+wandb:
+  project: eeg-mmi
+  entity: null
+  mode: online           # online | offline | disabled
+  tags: []
