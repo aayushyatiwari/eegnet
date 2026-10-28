@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EEGNet Baseline Results</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f6f5f2; --surface: #fcfcfb; --border: #e4e2dc; --grid: #ebe9e4;
+  --text-1: #0b0b0b; --text-2: #52514e; --text-3: #7a7974;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4;
+  --ref: #8a8984;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #121211; --surface: #1a1a19; --border: #2e2e2c; --grid: #2a2a28;
+    --text-1: #f0efec; --text-2: #c3c2b7; --text-3: #918f86;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
+    --ref: #75746e;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121211; --surface: #1a1a19; --border: #2e2e2c; --grid: #2a2a28;
+  --text-1: #f0efec; --text-2: #c3c2b7; --text-3: #918f86;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
+  --ref: #75746e;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text-1);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 1040px; margin: 0 auto; padding: 40px 16px 64px; }
+header p { color: var(--text-2); margin: 4px 0 0; max-width: 70ch; }
+h1 { font-size: 26px; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: 17px; margin: 0 0 2px; }
+.sub { color: var(--text-2); font-size: 13.5px; margin: 0 0 14px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 20px; margin-top: 20px; }
+.hero { display: grid; grid-template-columns: minmax(300px, 1.6fr) repeat(4, 1fr); gap: 16px; align-items: end; }
+.hero .big { white-space: nowrap; font-size: 56px; font-weight: 600; line-height: 1; letter-spacing: -0.02em; }
+.hero .big small { font-size: 22px; color: var(--text-2); font-weight: 500; }
+.label { color: var(--text-2); font-size: 13px; }
+.tile .v { font-size: 22px; font-weight: 600; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid2 .card { margin-top: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--text-2); margin-bottom: 8px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.legend i.line { height: 2px; width: 14px; border-radius: 1px; vertical-align: 3px; }
+.legend i.dash { height: 0; width: 14px; border-top: 1px dashed var(--ref); background: none !important; vertical-align: 3px; }
+svg { display: block; width: 100%; overflow: visible; }
+svg text { fill: var(--text-3); font-size: 11.5px; }
+.tip { position: fixed; pointer-events: none; background: var(--surface); color: var(--text-1);
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 12.5px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.12); opacity: 0; transition: opacity .08s; z-index: 10; white-space: nowrap; }
+.tip b { font-weight: 600; }
+.tip .row { display: flex; align-items: center; gap: 6px; }
+.tip .row i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--grid); }
+th { color: var(--text-2); font-weight: 500; }
+td.n, th.n { text-align: right; }
+details summary { cursor: pointer; color: var(--text-2); font-size: 13.5px; margin-top: 12px; }
+.subjgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 2px 16px;
+  font-size: 13px; font-variant-numeric: tabular-nums; margin-top: 10px; color: var(--text-2); }
+ul.notes { margin: 6px 0 0; padding-left: 18px; color: var(--text-2); }
+ul.notes li { margin: 6px 0; }
+ul.notes b { color: var(--text-1); font-weight: 600; }
+code { font-size: 12.5px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; }
+@media (max-width: 760px) {
+  .hero { grid-template-columns: 1fr 1fr; }
+  .hero > :first-child { grid-column: 1 / -1; }
+  .grid2 { grid-template-columns: 1fr; }
+  .hero .big { font-size: 48px; }
+}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>EEGNet baseline: left vs right imagined fist</h1>
+  <p>PhysioNet EEG Motor Movement/Imagery dataset, 106 subjects. Cross-subject 5-fold evaluation: every subject is tested exactly once, by a model that never saw their data. Run <code>eegnet-lr</code>, 28 Oct 2026.</p>
+</header>
+
+<section class="card hero">
+  <div>
+    <div class="label">Mean test accuracy across 5 folds</div>
+    <div class="big" id="hero"></div>
+  </div>
+  <div class="tile"><div class="label">Chance level</div><div class="v">50%</div></div>
+  <div class="tile"><div class="label">Test subjects</div><div class="v">106</div></div>
+  <div class="tile"><div class="label">Test trials</div><div class="v" id="ntest"></div></div>
+  <div class="tile"><div class="label">Training time</div><div class="v">~13 min</div></div>
+</section>
+
+<div class="grid2" style="margin-top:20px">
+  <section class="card">
+    <h2>Accuracy per fold</h2>
+    <p class="sub">Validation picks the best epoch; test is scored once at the end.</p>
+    <div class="legend"><span><i style="background:var(--s1)"></i>Test</span><span><i style="background:var(--s2)"></i>Validation</span><span><i class="dash"></i>Chance (50%)</span></div>
+    <div id="folds"></div>
+  </section>
+  <section class="card">
+    <h2>Validation accuracy during training</h2>
+    <p class="sub">Dots mark the epoch kept. Training stopped 20 epochs after the best.</p>
+    <div class="legend" id="curveLegend"></div>
+    <div id="curves"></div>
+  </section>
+</div>
+
+<section class="card">
+  <h2>Test accuracy per subject</h2>
+  <p class="sub">All 106 subjects, sorted. Each was a test subject in exactly one fold (45 imagined-movement trials each).</p>
+  <div class="legend"><span><i style="background:var(--s1)"></i>Subject accuracy</span><span><i class="dash"></i>Chance (50%)</span><span><i class="line" style="background:var(--text-2)"></i>Median</span></div>
+  <div id="subjects"></div>
+  <details><summary>Show all subject values</summary><div class="subjgrid" id="subjTable"></div></details>
+</section>
+
+<div class="grid2" style="margin-top:20px">
+  <section class="card">
+    <h2>Setup</h2>
+    <table>
+      <tr><th>Split</th><th>Subjects / fold</th><th>Runs</th></tr>
+      <tr><td>Train</td><td>~77</td><td>3, 4, 7, 8, 11, 12 (real + imagined)</td></tr>
+      <tr><td>Validation</td><td>8</td><td>4, 8, 12 (imagined)</td></tr>
+      <tr><td>Test</td><td>21–22</td><td>4, 8, 12 (imagined)</td></tr>
+    </table>
+    <ul class="notes">
+      <li>Input per trial: 64 channels × 640 samples (0–4 s after cue, 160 Hz), 1–40 Hz bandpass, per-channel z-score.</li>
+      <li>EEGNet-8,2, 2.9k parameters, AdamW lr 1e-3, batch 64, early stopping (patience 20).</li>
+      <li>Subject groups are disjoint across train / val / test in every fold (verified).</li>
+    </ul>
+  </section>
+  <section class="card">
+    <h2>Per-fold numbers</h2>
+    <table id="foldTable"></table>
+    <h2 style="margin-top:20px">Open checks</h2>
+    <ul class="notes">
+      <li><b>Eye movements.</b> Targets appear on the left/right of the screen; frontal channels may track gaze. Re-run with <code>data.channels=motor</code>.</li>
+      <li><b>Visual response.</b> Occipital channels respond to the target's side in the first ~0.5 s. Re-run with <code>data.tmin=0.5</code>.</li>
+      <li><b>Real-movement runs.</b> Training includes runs 3, 7, 11. Re-run imagery-only to measure their contribution.</li>
+      <li><b>Reference.</b> CSP+LDA baseline on the same splits not yet run.</li>
+    </ul>
+  </section>
+</div>
+</main>
+<div class="tip" id="tip"></div>
+
+<script>
+const DATA = {"folds": [{"fold": 0, "val": 0.8277777777777777, "test": 0.7787878787878788, "n_train": 6844, "n_test": 990}, {"fold": 1, "val": 0.8361111111111111, "test": 0.8, "n_train": 6934, "n_test": 945}, {"fold": 2, "val": 0.8083333333333333, "test": 0.8354564755838642, "n_train": 6937, "n_test": 942}, {"fold": 3, "val": 0.8666666666666667, "test": 0.8243386243386244, "n_train": 6927, "n_test": 945}, {"fold": 4, "val": 0.9333333333333333, "test": 0.8253968253968254, "n_train": 6934, "n_test": 945}], "subjects": [{"s": 1, "acc": 0.9555555555555556, "fold": 0}, {"s": 3, "acc": 0.9333333333333333, "fold": 0}, {"s": 5, "acc": 0.6666666666666666, "fold": 0}, {"s": 19, "acc": 0.8222222222222222, "fold": 0}, {"s": 26, "acc": 0.6222222222222222, "fold": 0}, {"s": 28, "acc": 0.7555555555555555, "fold": 0}, {"s": 29, "acc": 0.7555555555555555, "fold": 0}, {"s": 34, "acc": 0.7555555555555555, "fold": 0}, {"s": 38, "acc": 0.6666666666666666, "fold": 0}, {"s": 39, "acc": 0.7111111111111111, "fold": 0}, {"s": 47, "acc": 0.7777777777777778, "fold": 0}, {"s": 51, "acc": 0.7777777777777778, "fold": 0}, {"s": 56, "acc": 0.8666666666666667, "fold": 0}, {"s": 57, "acc": 0.9777777777777777, "fold": 0}, {"s": 71, "acc": 0.9777777777777777, "fold": 0}, {"s": 72, "acc": 0.7555555555555555, "fold": 0}, {"s": 74, "acc": 0.8222222222222222, "fold": 0}, {"s": 81, "acc": 0.8666666666666667, "fold": 0}, {"s": 83, "acc": 0.5555555555555556, "fold": 0}, {"s": 85, "acc": 0.8222222222222222, "fold": 0}, {"s": 87, "acc": 0.6, "fold": 0}, {"s": 109, "acc": 0.6888888888888889, "fold": 0}, {"s": 8, "acc": 0.8, "fold": 1}, {"s": 11, "acc": 0.8, "fold": 1}, {"s": 18, "acc": 1.0, "fold": 1}, {"s": 22, "acc": 1.0, "fold": 1}, {"s": 25, "acc": 0.5333333333333333, "fold": 1}, {"s": 27, "acc": 0.8222222222222222, "fold": 1}, {"s": 30, "acc": 0.8888888888888888, "fold": 1}, {"s": 40, "acc": 0.9333333333333333, "fold": 1}, {"s": 46, "acc": 0.6222222222222222, "fold": 1}, {"s": 52, "acc": 0.9555555555555556, "fold": 1}, {"s": 64, "acc": 0.7777777777777778, "fold": 1}, {"s": 69, "acc": 0.6666666666666666, "fold": 1}, {"s": 70, "acc": 1.0, "fold": 1}, {"s": 76, "acc": 0.6222222222222222, "fold": 1}, {"s": 77, "acc": 0.6888888888888889, "fold": 1}, {"s": 80, "acc": 0.6444444444444445, "fold": 1}, {"s": 86, "acc": 0.9333333333333333, "fold": 1}, {"s": 94, "acc": 0.8444444444444444, "fold": 1}, {"s": 103, "acc": 0.8222222222222222, "fold": 1}, {"s": 106, "acc": 0.6888888888888889, "fold": 1}, {"s": 107, "acc": 0.7555555555555555, "fold": 1}, {"s": 2, "acc": 0.8666666666666667, "fold": 2}, {"s": 4, "acc": 0.7777777777777778, "fold": 2}, {"s": 6, "acc": 0.8, "fold": 2}, {"s": 21, "acc": 0.8, "fold": 2}, {"s": 33, "acc": 0.8666666666666667, "fold": 2}, {"s": 41, "acc": 0.7777777777777778, "fold": 2}, {"s": 43, "acc": 0.8888888888888888, "fold": 2}, {"s": 44, "acc": 0.7555555555555555, "fold": 2}, {"s": 53, "acc": 0.9555555555555556, "fold": 2}, {"s": 58, "acc": 0.7777777777777778, "fold": 2}, {"s": 60, "acc": 0.8222222222222222, "fold": 2}, {"s": 62, "acc": 0.9111111111111111, "fold": 2}, {"s": 73, "acc": 0.8666666666666667, "fold": 2}, {"s": 79, "acc": 0.7111111111111111, "fold": 2}, {"s": 90, "acc": 0.9333333333333333, "fold": 2}, {"s": 91, "acc": 0.8444444444444444, "fold": 2}, {"s": 95, "acc": 0.9111111111111111, "fold": 2}, {"s": 97, "acc": 0.8666666666666667, "fold": 2}, {"s": 99, "acc": 0.7333333333333333, "fold": 2}, {"s": 102, "acc": 0.8444444444444444, "fold": 2}, {"s": 104, "acc": 0.8333333333333334, "fold": 2}, {"s": 10, "acc": 0.7333333333333333, "fold": 3}, {"s": 16, "acc": 0.7333333333333333, "fold": 3}, {"s": 17, "acc": 0.8222222222222222, "fold": 3}, {"s": 24, "acc": 0.8, "fold": 3}, {"s": 31, "acc": 0.9111111111111111, "fold": 3}, {"s": 32, "acc": 1.0, "fold": 3}, {"s": 35, "acc": 0.9111111111111111, "fold": 3}, {"s": 45, "acc": 0.7333333333333333, "fold": 3}, {"s": 49, "acc": 0.7333333333333333, "fold": 3}, {"s": 55, "acc": 0.9333333333333333, "fold": 3}, {"s": 59, "acc": 0.6444444444444445, "fold": 3}, {"s": 61, "acc": 0.9777777777777777, "fold": 3}, {"s": 63, "acc": 0.7555555555555555, "fold": 3}, {"s": 68, "acc": 0.7111111111111111, "fold": 3}, {"s": 75, "acc": 0.7333333333333333, "fold": 3}, {"s": 82, "acc": 0.8222222222222222, "fold": 3}, {"s": 84, "acc": 0.7111111111111111, "fold": 3}, {"s": 89, "acc": 0.8222222222222222, "fold": 3}, {"s": 96, "acc": 1.0, "fold": 3}, {"s": 105, "acc": 1.0, "fold": 3}, {"s": 108, "acc": 0.8222222222222222, "fold": 3}, {"s": 7, "acc": 0.9555555555555556, "fold": 4}, {"s": 9, "acc": 0.8444444444444444, "fold": 4}, {"s": 12, "acc": 0.8, "fold": 4}, {"s": 13, "acc": 0.7777777777777778, "fold": 4}, {"s": 14, "acc": 0.7111111111111111, "fold": 4}, {"s": 15, "acc": 0.9777777777777777, "fold": 4}, {"s": 20, "acc": 0.9333333333333333, "fold": 4}, {"s": 23, "acc": 0.7777777777777778, "fold": 4}, {"s": 36, "acc": 0.8888888888888888, "fold": 4}, {"s": 37, "acc": 0.8888888888888888, "fold": 4}, {"s": 42, "acc": 0.8222222222222222, "fold": 4}, {"s": 48, "acc": 0.9555555555555556, "fold": 4}, {"s": 50, "acc": 0.7333333333333333, "fold": 4}, {"s": 54, "acc": 0.8666666666666667, "fold": 4}, {"s": 65, "acc": 0.8222222222222222, "fold": 4}, {"s": 66, "acc": 0.8, "fold": 4}, {"s": 67, "acc": 0.5777777777777777, "fold": 4}, {"s": 78, "acc": 0.7555555555555555, "fold": 4}, {"s": 93, "acc": 0.6888888888888889, "fold": 4}, {"s": 98, "acc": 0.7555555555555555, "fold": 4}, {"s": 101, "acc": 1.0, "fold": 4}], "curves": {"0": [[0, 0.5736, 0.4396, 0.783], [1, 0.4583, 0.4129, 0.783], [2, 0.431, 0.4078, 0.806], [3, 0.4205, 0.4067, 0.817], [4, 0.4109, 0.3964, 0.8], [5, 0.4014, 0.3815, 0.819], [6, 0.4016, 0.382, 0.808], [7, 0.3937, 0.3827, 0.808], [8, 0.3831, 0.3782, 0.811], [9, 0.3815, 0.3756, 0.814], [10, 0.3794, 0.3822, 0.808], [11, 0.3805, 0.3781, 0.825], [12, 0.3788, 0.3715, 0.8], [13, 0.3724, 0.3714, 0.808], [14, 0.3729, 0.3654, 0.817], [15, 0.3691, 0.3724, 0.8], [16, 0.3621, 0.3847, 0.8], [17, 0.365, 0.3765, 0.811], [18, 0.3631, 0.3752, 0.814], [19, 0.3587, 0.3845, 0.8], [20, 0.36, 0.3754, 0.808], [21, 0.3567, 0.3728, 0.819], [22, 0.3652, 0.3694, 0.822], [23, 0.3619, 0.3719, 0.819], [24, 0.3523, 0.378, 0.822], [25, 0.3633, 0.3725, 0.803], [26, 0.3533, 0.3671, 0.828], [27, 0.3507, 0.3722, 0.822], [28, 0.3503, 0.3758, 0.814], [29, 0.3552, 0.3708, 0.828], [30, 0.345, 0.3854, 0.806], [31, 0.3532, 0.374, 0.814], [32, 0.3543, 0.3778, 0.819], [33, 0.3498, 0.3762, 0.814], [34, 0.3506, 0.3727, 0.819], [35, 0.3441, 0.3631, 0.819], [36, 0.3428, 0.3766, 0.806], [37, 0.3442, 0.3689, 0.822], [38, 0.3434, 0.3834, 0.814], [39, 0.3439, 0.3768, 0.814], [40, 0.3456, 0.3738, 0.819], [41, 0.3429, 0.389, 0.8], [42, 0.3406, 0.3681, 0.822], [43, 0.3426, 0.3649, 0.819], [44, 0.3329, 0.3879, 0.814], [45, 0.3354, 0.3846, 0.822], [46, 0.3389, 0.3883, 0.806]], "1": [[0, 0.5646, 0.4395, 0.811], [1, 0.4732, 0.4217, 0.808], [2, 0.4485, 0.4164, 0.817], [3, 0.4354, 0.3966, 0.831], [4, 0.4354, 0.3965, 0.825], [5, 0.421, 0.3938, 0.819], [6, 0.4171, 0.3923, 0.836], [7, 0.4073, 0.3958, 0.822], [8, 0.4014, 0.3872, 0.831], [9, 0.4073, 0.3796, 0.825], [10, 0.4015, 0.3803, 0.828], [11, 0.3994, 0.3789, 0.833], [12, 0.393, 0.3806, 0.822], [13, 0.3891, 0.3772, 0.822], [14, 0.3889, 0.3851, 0.825], [15, 0.3892, 0.3711, 0.825], [16, 0.3804, 0.3795, 0.825], [17, 0.3871, 0.3734, 0.828], [18, 0.383, 0.3706, 0.822], [19, 0.3815, 0.3769, 0.819], [20, 0.3876, 0.3764, 0.817], [21, 0.3797, 0.3744, 0.831], [22, 0.3789, 0.3654, 0.836], [23, 0.3802, 0.366, 0.822], [24, 0.3797, 0.3577, 0.831], [25, 0.3793, 0.3634, 0.831], [26, 0.3801, 0.3507, 0.833]], "2": [[0, 0.5838, 0.5446, 0.722], [1, 0.4716, 0.4967, 0.781], [2, 0.4442, 0.4828, 0.775], [3, 0.4399, 0.4834, 0.781], [4, 0.424, 0.4773, 0.786], [5, 0.4244, 0.468, 0.789], [6, 0.4087, 0.469, 0.803], [7, 0.4086, 0.4636, 0.8], [8, 0.3956, 0.4577, 0.8], [9, 0.4036, 0.4672, 0.8], [10, 0.3912, 0.469, 0.794], [11, 0.3936, 0.4643, 0.794], [12, 0.3924, 0.4723, 0.781], [13, 0.3796, 0.4666, 0.803], [14, 0.3822, 0.4672, 0.786], [15, 0.3791, 0.4618, 0.794], [16, 0.3879, 0.456, 0.794], [17, 0.3779, 0.4713, 0.803], [18, 0.3788, 0.4618, 0.794], [19, 0.3731, 0.4735, 0.797], [20, 0.3768, 0.4621, 0.806], [21, 0.3776, 0.4678, 0.792], [22, 0.3726, 0.4705, 0.786], [23, 0.3699, 0.4666, 0.786], [24, 0.3698, 0.4678, 0.797], [25, 0.3752, 0.477, 0.797], [26, 0.3694, 0.4739, 0.806], [27, 0.3633, 0.4723, 0.806], [28, 0.3705, 0.4672, 0.803], [29, 0.3624, 0.4629, 0.8], [30, 0.3684, 0.4541, 0.806], [31, 0.3656, 0.4601, 0.806], [32, 0.3663, 0.4706, 0.792], [33, 0.3658, 0.4581, 0.808], [34, 0.3616, 0.4709, 0.806], [35, 0.3562, 0.4638, 0.792], [36, 0.3603, 0.4712, 0.8], [37, 0.3609, 0.4667, 0.8], [38, 0.3591, 0.4679, 0.806], [39, 0.3557, 0.4735, 0.803], [40, 0.3614, 0.4649, 0.803], [41, 0.3513, 0.4666, 0.797], [42, 0.3602, 0.4689, 0.789], [43, 0.3529, 0.4693, 0.8], [44, 0.3542, 0.4831, 0.8], [45, 0.3548, 0.4609, 0.797], [46, 0.3508, 0.465, 0.797], [47, 0.3478, 0.4726, 0.794], [48, 0.3504, 0.463, 0.794], [49, 0.357, 0.4707, 0.797], [50, 0.3472, 0.4572, 0.792], [51, 0.3547, 0.4634, 0.794], [52, 0.355, 0.4632, 0.794], [53, 0.3585, 0.4613, 0.806]], "3": [[0, 0.5894, 0.4082, 0.831], [1, 0.4699, 0.3665, 0.867], [2, 0.4465, 0.358, 0.861], [3, 0.4335, 0.3522, 0.847], [4, 0.4253, 0.3573, 0.847], [5, 0.4217, 0.3341, 0.858], [6, 0.4174, 0.3468, 0.839], [7, 0.4082, 0.3443, 0.844], [8, 0.4001, 0.3372, 0.85], [9, 0.4018, 0.3341, 0.847], [10, 0.4, 0.329, 0.858], [11, 0.3978, 0.3305, 0.85], [12, 0.3961, 0.3387, 0.85], [13, 0.3941, 0.3255, 0.847], [14, 0.3921, 0.3273, 0.853], [15, 0.388, 0.3224, 0.847], [16, 0.3865, 0.3347, 0.85], [17, 0.3897, 0.3283, 0.861], [18, 0.3864, 0.3197, 0.858], [19, 0.3835, 0.3317, 0.853], [20, 0.3811, 0.3173, 0.858], [21, 0.3795, 0.3279, 0.844]], "4": [[0, 0.5784, 0.3641, 0.894], [1, 0.4694, 0.3625, 0.897], [2, 0.4503, 0.3377, 0.903], [3, 0.4387, 0.3115, 0.911], [4, 0.4302, 0.3069, 0.911], [5, 0.4182, 0.295, 0.917], [6, 0.4133, 0.294, 0.919], [7, 0.4116, 0.3089, 0.906], [8, 0.3999, 0.3084, 0.906], [9, 0.4008, 0.2946, 0.922], [10, 0.3966, 0.2896, 0.917], [11, 0.3869, 0.2905, 0.908], [12, 0.3929, 0.2927, 0.911], [13, 0.3885, 0.2863, 0.922], [14, 0.3833, 0.268, 0.922], [15, 0.3834, 0.2764, 0.911], [16, 0.3799, 0.272, 0.919], [17, 0.3779, 0.2684, 0.919], [18, 0.3728, 0.277, 0.917], [19, 0.3708, 0.2568, 0.922], [20, 0.3733, 0.2521, 0.922], [21, 0.3677, 0.2532, 0.914], [22, 0.3679, 0.2638, 0.919], [23, 0.3624, 0.2488, 0.928], [24, 0.3644, 0.2371, 0.928], [25, 0.3691, 0.2518, 0.925], [26, 0.3634, 0.2648, 0.925], [27, 0.3574, 0.2328, 0.933], [28, 0.356, 0.2568, 0.914], [29, 0.3526, 0.2428, 0.925], [30, 0.3592, 0.238, 0.922], [31, 0.3505, 0.251, 0.925], [32, 0.3591, 0.2599, 0.919], [33, 0.3579, 0.2499, 0.928], [34, 0.3525, 0.2466, 0.931], [35, 0.3488, 0.2378, 0.919], [36, 0.3465, 0.245, 0.925], [37, 0.347, 0.2472, 0.922], [38, 0.3503, 0.2541, 0.917], [39, 0.3451, 0.2525, 0.922], [40, 0.3449, 0.2405, 0.925], [41, 0.346, 0.263, 0.925], [42, 0.34, 0.2454, 0.931], [43, 0.3431, 0.238, 0.922], [44, 0.3499, 0.2461, 0.919], [45, 0.3389, 0.2622, 0.922], [46, 0.3342, 0.2267, 0.922], [47, 0.3391, 0.2497, 0.922]]}};
+const NS = "http://www.w3.org/2000/svg";
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const pct = x => (100 * x).toFixed(1) + "%";
+const FOLD_COLORS = ["--s1", "--s2", "--s3", "--s4", "--s5"];
+const tip = document.getElementById("tip");
+
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function showTip(html, ev) {
+  tip.innerHTML = html; tip.style.opacity = 1;
+  const w = tip.offsetWidth, x = ev.clientX + 14 + w > innerWidth ? ev.clientX - w - 14 : ev.clientX + 14;
+  tip.style.left = x + "px"; tip.style.top = (ev.clientY + 14) + "px";
+}
+const hideTip = () => tip.style.opacity = 0;
+
+// rounded-top bar path, square at baseline
+function barPath(x, y, w, h, r) {
+  r = Math.min(r, w / 2, h);
+  return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
+}
+function frame(container, height, m, yMin, yMax, ticks, fmt) {
+  container.innerHTML = "";
+  const W = container.clientWidth, H = height;
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, height: H }, container);
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const y = v => m.t + ih * (1 - (v - yMin) / (yMax - yMin));
+  for (const t of ticks) {
+    el("line", { x1: m.l, x2: W - m.r, y1: y(t), y2: y(t), stroke: css("--grid"), "stroke-width": 1 }, svg);
+    el("text", { x: m.l - 8, y: y(t) + 4, "text-anchor": "end" }, svg).textContent = fmt(t);
+  }
+  return { svg, W, H, iw, ih, y };
+}
+function refLine(f, m, v, dashed, color) {
+  el("line", { x1: m.l, x2: f.W - m.r, y1: f.y(v), y2: f.y(v), stroke: color || css("--ref"),
+    "stroke-width": 1, "stroke-dasharray": dashed ? "4 3" : "" }, f.svg);
+}
+
+function drawFolds() {
+  const c = document.getElementById("folds"), m = { l: 40, r: 8, t: 22, b: 28 };
+  const f = frame(c, 260, m, 0, 1, [0, .25, .5, .75, 1], t => (t * 100) + "%");
+  refLine(f, m, .5, true);
+  const band = f.iw / DATA.folds.length, bw = Math.min(24, band / 3), gap = 2;
+  DATA.folds.forEach((d, i) => {
+    const cx = m.l + band * (i + .5);
+    [["test", "--s1", cx - bw - gap / 2], ["val", "--s2", cx + gap / 2]].forEach(([k, col, x]) => {
+      el("path", { d: barPath(x, f.y(d[k]), bw, f.y(0) - f.y(d[k]), 4), fill: css(col) }, f.svg);
+    });
+    el("text", { x: cx - bw / 2 - gap / 2, y: f.y(d.test) - 6, "text-anchor": "middle", style: `fill:${css("--text-1")};font-weight:600` }, f.svg).textContent = Math.round(d.test * 100);
+    el("text", { x: cx, y: f.H - 8, "text-anchor": "middle" }, f.svg).textContent = "Fold " + d.fold;
+    const hit = el("rect", { x: cx - band / 2, y: m.t, width: band, height: f.ih, fill: "transparent" }, f.svg);
+    hit.addEventListener("mousemove", ev => showTip(`<b>Fold ${d.fold}</b><div class="row"><i style="background:${css("--s1")}"></i>Test ${pct(d.test)} · ${d.n_test} trials</div><div class="row"><i style="background:${css("--s2")}"></i>Validation ${pct(d.val)}</div>`, ev));
+    hit.addEventListener("mouseleave", hideTip);
+  });
+}
+
+function drawCurves() {
+  const c = document.getElementById("curves"), m = { l: 40, r: 12, t: 12, b: 28 };
+  const f = frame(c, 260, m, .4, 1, [.4, .6, .8, 1], t => Math.round(t * 100) + "%");
+  refLine(f, m, .5, true);
+  const maxEp = Math.max(...Object.values(DATA.curves).map(a => a.length));
+  const x = e => m.l + f.iw * e / (maxEp - 1);
+  for (const e of [0, 10, 20, 30, 40, 50].filter(e => e < maxEp))
+    el("text", { x: x(e), y: f.H - 8, "text-anchor": "middle" }, f.svg).textContent = e;
+  const series = Object.entries(DATA.curves);
+  series.forEach(([k, pts], i) => {
+    const col = css(FOLD_COLORS[i]);
+    el("path", { d: pts.map((p, j) => (j ? "L" : "M") + x(p[0]) + "," + f.y(p[3])).join(""), fill: "none",
+      stroke: col, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }, f.svg);
+    const best = pts.reduce((a, b) => b[3] > a[3] ? b : a);
+    el("circle", { cx: x(best[0]), cy: f.y(best[3]), r: 4.5, fill: col, stroke: css("--surface"), "stroke-width": 2 }, f.svg);
+  });
+  const cross = el("line", { y1: m.t, y2: m.t + f.ih, stroke: css("--text-3"), "stroke-width": 1, opacity: 0 }, f.svg);
+  const hit = el("rect", { x: m.l, y: m.t, width: f.iw, height: f.ih, fill: "transparent" }, f.svg);
+  hit.addEventListener("mousemove", ev => {
+    const r = f.svg.getBoundingClientRect(), e = Math.round((ev.clientX - r.left - m.l) / f.iw * (maxEp - 1));
+    if (e < 0 || e >= maxEp) return;
+    cross.setAttribute("x1", x(e)); cross.setAttribute("x2", x(e)); cross.setAttribute("opacity", .5);
+    const rows = series.map(([k, pts], i) => pts[e] ? `<div class="row"><i style="background:${css(FOLD_COLORS[i])}"></i>Fold ${k}: ${pct(pts[e][3])}</div>` : "").join("");
+    showTip(`<b>Epoch ${e}</b>${rows}`, ev);
+  });
+  hit.addEventListener("mouseleave", () => { hideTip(); cross.setAttribute("opacity", 0); });
+  document.getElementById("curveLegend").innerHTML = series.map(([k], i) =>
+    `<span><i class="line" style="background:var(${FOLD_COLORS[i]})"></i>Fold ${k}</span>`).join("") + `<span><i class="dash"></i>Chance</span>`;
+}
+
+function drawSubjects() {
+  const c = document.getElementById("subjects"), m = { l: 40, r: 8, t: 12, b: 28 };
+  const f = frame(c, 280, m, 0, 1, [0, .25, .5, .75, 1], t => (t * 100) + "%");
+  const s = [...DATA.subjects].sort((a, b) => a.acc - b.acc);
+  const band = f.iw / s.length, bw = band >= 6 ? band - 2 : band - 0.5;
+  s.forEach((d, i) => {
+    const bx = m.l + i * band;
+    el("path", { d: barPath(bx, f.y(d.acc), bw, f.y(0) - f.y(d.acc), Math.min(4, bw / 2)), fill: css("--s1") }, f.svg);
+    const hit = el("rect", { x: bx, y: m.t, width: band, height: f.ih, fill: "transparent" }, f.svg);
+    hit.addEventListener("mousemove", ev => showTip(`<b>S${String(d.s).padStart(3, "0")}</b><br>${pct(d.acc)} · test in fold ${d.fold}`, ev));
+    hit.addEventListener("mouseleave", hideTip);
+  });
+  refLine(f, m, .5, true);
+  const med = s[Math.floor(s.length / 2)].acc / 2 + s[Math.ceil(s.length / 2) - 1].acc / 2;
+  refLine(f, m, med, false, css("--text-2"));
+  el("text", { x: m.l + 6, y: f.y(med) - 6, style: `fill:${css("--text-1")}` }, f.svg).textContent = "Median " + pct(med);
+  el("text", { x: m.l, y: f.H - 8 }, f.svg).textContent = "Worst";
+  el("text", { x: f.W - m.r, y: f.H - 8, "text-anchor": "end" }, f.svg).textContent = "Best";
+  const tbl = [...DATA.subjects].sort((a, b) => a.s - b.s);
+  document.getElementById("subjTable").innerHTML = tbl.map(d => `<span>S${String(d.s).padStart(3, "0")} · ${pct(d.acc)}</span>`).join("");
+}
+
+function fillStatic() {
+  const t = DATA.folds.map(d => d.test), mean = t.reduce((a, b) => a + b) / t.length;
+  const sd = Math.sqrt(t.reduce((a, b) => a + (b - mean) ** 2, 0) / t.length);
+  document.getElementById("hero").innerHTML = `${(mean * 100).toFixed(1)}%<small> ± ${(sd * 100).toFixed(1)}</small>`;
+  document.getElementById("ntest").textContent = DATA.folds.reduce((a, d) => a + d.n_test, 0).toLocaleString();
+  document.getElementById("foldTable").innerHTML = `<tr><th>Fold</th><th class="n">Train trials</th><th class="n">Test trials</th><th class="n">Val acc</th><th class="n">Test acc</th><th class="n">Epochs</th></tr>` +
+    DATA.folds.map(d => `<tr><td>${d.fold}</td><td class="n">${d.n_train.toLocaleString()}</td><td class="n">${d.n_test}</td><td class="n">${pct(d.val)}</td><td class="n">${pct(d.test)}</td><td class="n">${DATA.curves[d.fold].length}</td></tr>`).join("");
+}
+
+function drawAll() { drawFolds(); drawCurves(); drawSubjects(); }
+fillStatic(); drawAll();
+let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(drawAll, 100); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawAll);
+</script>
+</body>
+</html>
